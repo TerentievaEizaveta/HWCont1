@@ -1,0 +1,200 @@
+Задание: необходимо продемонстрировать изоляцию одного и того же приложения (как решено на семинаре - командного интерпретатора)
+ в различных пространствах имен.
+ 
+ administrator@docker:~$ mkdir lesson1kon
+administrator@docker:~$ cd lesson1kon
+administrator@docker:~/lesson1kon$ mkdir newroot
+administrator@docker:~/lesson1kon$ ls -l
+total 4
+drwxrwxr-x 2 administrator administrator 4096 окт 17 14:58 newroot
+administrator@docker:~/lesson1kon$ sudo chroot newroot /bin/bush
+[sudo] password for administrator:
+chroot: failed to run command С/bin/bushТ: No such file or directory
+administrator@docker:~/lesson1kon$ whereis bash
+bash: /usr/bin/bash /usr/share/man/man1/bash.1.gz
+administrator@docker:~/lesson1kon$ ldd bin/bush
+ldd: bin/bush: No such file or directory
+administrator@docker:~/lesson1kon$ ldd /bin/bush
+ldd: /bin/bush: No such file or directory
+administrator@docker:~/lesson1kon$ ldd /bin/bash
+        linux-vdso.so.1 (0x00007ffe24d80000)
+        libtinfo.so.6 => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x00007f8f78182000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f8f77f5a000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f8f78326000)
+administrator@docker:~/lesson1kon$ mkdir newroot/bin
+administrator@docker:~/lesson1kon$ mkdir newroot/lib
+administrator@docker:~/lesson1kon$ mkdir newroot/lib64
+administrator@docker:~/lesson1kon$ cp /bin/bash/ newroot/bin/
+cp: cannot stat '/bin/bash/': Not a directory
+administrator@docker:~/lesson1kon$ cp /bin/bash newroot/bin/
+administrator@docker:~/lesson1kon$ cp /bin/bash newroot/bin/^C
+administrator@docker:~/lesson1kon$ cp /lib/x86_64-linux-gnu/libtinfo.so.6  newroot/lib/
+administrator@docker:~/lesson1kon$ cp /lib/x86_64-linux-gnu/libtinfo.so.6^Cnewroot/lib/
+administrator@docker:~/lesson1kon$ ^C
+: command not found
+administrator@docker:~/lesson1kon$ cp /lib/x86_64-linux-gnu/libc.so.6  newroot/lib/
+administrator@docker:~/lesson1kon$ cp /lib64/ld-linux-x86-64.so.2 newroot/lib64/
+administrator@docker:~/lesson1kon$ sudo chroot newroot /bin/bash
+bash-5.1#
+bash-5.1# ls
+bash: ls: command not found
+bash-5.1# exit
+exit
+administrator@docker:~/lesson1kon$ whereis ls
+ls: /usr/bin/ls /usr/share/man/man1/ls.1.gz
+administrator@docker:~/lesson1kon$ mkdir newroot/usr
+administrator@docker:~/lesson1kon$ mkdir newroot/usr/bin
+administrator@docker:~/lesson1kon$ cp newroot/
+bin/   lib/   lib64/ usr/
+administrator@docker:~/lesson1kon$ cp /usr/bin/ls newroot/usr/
+administrator@docker:~/lesson1kon$ ldd
+ldd: missing file arguments
+Try `ldd --help' for more information.
+administrator@docker:~/lesson1kon$ ldd /usr/bin/ls
+        linux-vdso.so.1 (0x00007ffd073a6000)
+        libselinux.so.1 => /lib/x86_64-linux-gnu/libselinux.so.1 (0x00007f0f667d6000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f0f665ae000)
+        libpcre2-8.so.0 => /lib/x86_64-linux-gnu/libpcre2-8.so.0 (0x00007f0f66517000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f0f66837000)
+administrator@docker:~/lesson1kon$ cp^C
+administrator@docker:~/lesson1kon$ ^C
+administrator@docker:~/lesson1kon$ cp /lib/x86_64-linux-gnu/libselinux.so.1 newroot/lib/
+administrator@docker:~/lesson1kon$ cp /lib/x86_64-linux-gnu/libc.so.6 newroot/lib/
+administrator@docker:~/lesson1kon$ cp /lib/x86_64-linux-gnu/libpcre2-8.so.0 newroot/lib
+administrator@docker:~/lesson1kon$ cp  /lib64/ld-linux-x86-64.so.2 newroot/lib64
+administrator@docker:~/lesson1kon$ sudo chroot newroot /bin/bash
+bash-5.1# ls -l
+bash: ls: command not found
+bash-5.1# ls
+bash: ls: command not found
+bash-5.1# exit
+exit
+administrator@docker:~/lesson1kon$ cp /usr/bin/ls newroot/usr/bin/
+administrator@docker:~/lesson1kon$ sudo chroot newroot /bin/bash
+bash-5.1# ls -l
+total 16
+drwxrwxr-x 2 1000 1000 4096 Oct 17 15:05 bin
+drwxrwxr-x 2 1000 1000 4096 Oct 17 15:19 lib
+drwxrwxr-x 2 1000 1000 4096 Oct 17 15:11 lib64
+drwxrwxr-x 3 1000 1000 4096 Oct 17 15:14 usr
+bash-5.1# cd /
+bash-5.1# ls
+bin  lib  lib64  usr
+bash-5.1# exit
+exit
+administrator@docker:~/lesson1kon$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:0d:e3:0f brd ff:ff:ff:ff:ff:ff
+    altname enp2s1
+    inet 192.168.56.129/24 metric 100 brd 192.168.56.255 scope global dynamic ens33
+       valid_lft 1684sec preferred_lft 1684sec
+    inet6 fe80::20c:29ff:fe0d:e30f/64 scope link
+       valid_lft forever preferred_lft forever
+3: ens37: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:0d:e3:19 brd ff:ff:ff:ff:ff:ff
+    altname enp2s5
+    inet 172.17.158.143/20 metric 100 brd 172.17.159.255 scope global dynamic ens37
+       valid_lft 84486sec preferred_lft 84486sec
+    inet6 fe80::20c:29ff:fe0d:e319/64 scope link
+       valid_lft forever preferred_lft forever
+4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether 02:42:ae:f7:39:87 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+administrator@docker:~/lesson1kon$ man ip
+administrator@docker:~/lesson1kon$ sudo ip netns add testns123
+administrator@docker:~/lesson1kon$ sudo ip link add veth0 type veth peer name veth1
+administrator@docker:~/lesson1kon$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:0d:e3:0f brd ff:ff:ff:ff:ff:ff
+    altname enp2s1
+    inet 192.168.56.129/24 metric 100 brd 192.168.56.255 scope global dynamic ens33
+       valid_lft 1334sec preferred_lft 1334sec
+    inet6 fe80::20c:29ff:fe0d:e30f/64 scope link
+       valid_lft forever preferred_lft forever
+3: ens37: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:0d:e3:19 brd ff:ff:ff:ff:ff:ff
+    altname enp2s5
+    inet 172.17.158.143/20 metric 100 brd 172.17.159.255 scope global dynamic ens37
+       valid_lft 84136sec preferred_lft 84136sec
+    inet6 fe80::20c:29ff:fe0d:e319/64 scope link
+       valid_lft forever preferred_lft forever
+4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether 02:42:ae:f7:39:87 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+5: veth1@veth0: <BROADCAST,MULTICAST,M-DOWN> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 0e:2a:0f:c9:2d:07 brd ff:ff:ff:ff:ff:ff
+6: veth0@veth1: <BROADCAST,MULTICAST,M-DOWN> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 82:32:e0:2e:ff:f8 brd ff:ff:ff:ff:ff:ff
+administrator@docker:~/lesson1kon$ sudo ip link set veth1 netns testns123
+administrator@docker:~/lesson1kon$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:0d:e3:0f brd ff:ff:ff:ff:ff:ff
+    altname enp2s1
+    inet 192.168.56.129/24 metric 100 brd 192.168.56.255 scope global dynamic ens33
+       valid_lft 1271sec preferred_lft 1271sec
+    inet6 fe80::20c:29ff:fe0d:e30f/64 scope link
+       valid_lft forever preferred_lft forever
+3: ens37: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:0d:e3:19 brd ff:ff:ff:ff:ff:ff
+    altname enp2s5
+    inet 172.17.158.143/20 metric 100 brd 172.17.159.255 scope global dynamic ens37
+       valid_lft 84072sec preferred_lft 84072sec
+    inet6 fe80::20c:29ff:fe0d:e319/64 scope link
+       valid_lft forever preferred_lft forever
+4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether 02:42:ae:f7:39:87 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+6: veth0@if5: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 82:32:e0:2e:ff:f8 brd ff:ff:ff:ff:ff:ff link-netns testns123
+administrator@docker:~/lesson1kon$ sudo ip addr add 10.0.0.1/24 dev veth0
+administrator@docker:~/lesson1kon$ sudo ip link set dev veth0 up
+administrator@docker:~/lesson1kon$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:0d:e3:0f brd ff:ff:ff:ff:ff:ff
+    altname enp2s1
+    inet 192.168.56.129/24 metric 100 brd 192.168.56.255 scope global dynamic ens33
+       valid_lft 1097sec preferred_lft 1097sec
+    inet6 fe80::20c:29ff:fe0d:e30f/64 scope link
+       valid_lft forever preferred_lft forever
+3: ens37: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:0d:e3:19 brd ff:ff:ff:ff:ff:ff
+    altname enp2s5
+    inet 172.17.158.143/20 metric 100 brd 172.17.159.255 scope global dynamic ens37
+       valid_lft 82998sec preferred_lft 82998sec
+    inet6 fe80::20c:29ff:fe0d:e319/64 scope link
+       valid_lft forever preferred_lft forever
+4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether 02:42:ae:f7:39:87 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+6: veth0@if5: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state LOWERLAYERDOWN group default qlen 1000
+    link/ether 82:32:e0:2e:ff:f8 brd ff:ff:ff:ff:ff:ff link-netns testns123
+    inet 10.0.0.1/24 scope global veth0
+       valid_lft forever preferred_lft forever
